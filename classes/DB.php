@@ -4,8 +4,8 @@ require_once("App.php");
 final class DB extends App {
 
     private $iniConfig;
-    private $localPath  = "/soccer_guess/src/server/configuration/";
-    private $remotePath = "/soccer_guess/configuration/";
+    private $localPath  = "/my-login/src/server/configuration/";
+    private $remotePath = "/my-login/configuration/";
     
 
 
