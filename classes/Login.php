@@ -3,21 +3,93 @@ require_once('App.php');
 require_once('Api.php');
 
 class Login extends Api {
-    private $userEmail = 'email';
-    private $userPass = 'pass';
+
+    private $requiredParameters = array(
+        'email',
+        'pass',
+        'test'
+    );
+    private $missingParameters = array();
+
+    private $requestMethod;
+    private $ajaxParameters;
+    private $urlParameters;
 
     public function __construct() { 
-        parent::__construct();
+        $this->setRequestMethod();
+    }
+    
+    // PARENT METHODS
+    private function setRequestMethod() {
+        switch ($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                $this->requestMethod = &$_GET;
+                break;
+            case 'POST':
+                $this->requestMethod = &$_POST;
+                break;
+            default:
+                $this->requestMethod = &$_GET;
+        }
     }
 
-    private function logUser2() {
-        // empty params
-
-
+    private function getRequestMethod() {
+        return $this->requestMethod;
+    }
+    
+    private function getParameters() {
+        $this->urlParameters = $_REQUEST;                               // GET ALL POSSIBLE PARAMETERS PASSED BY URL 
+        $this->ajaxParameters = file_get_contents('php://input');       // GET ALL POSSIBLE PARAMETERS PASSED BY AN AJAX CALL
     }
 
-    private function post() {}
-    private function get() {}
+    private function checkRequiredParemetes() {
+        // RETRIEVE ALL  MISSING REQUIRED PARAMETERS
+        foreach ($this->requiredParameters as $index => $parameter) {
+            if( ! array_key_exists($parameter, $this->urlParameters)) {
+                $this->missingParameters[] = $parameter;
+            }
+        }
+        // IF ANY OF THEM IS MISSING...
+        if( !empty($this->missingParameters)) {
+            echo json_encode(
+                array(
+                    'request type' => $_SERVER['REQUEST_METHOD'], 
+                    'status' => 'failure', 
+                    'message' => 'You have not passed the following parameter(s): ' . implode(',',$this->missingParameters),
+                    'code' => '002'  
+                )
+            );
+            exit();
+        }
+    }
+
+    private function checkEmptyParameters() {
+        // echo "without encode"; 
+        // print_r($this->ajaxParameters);
+        // echo gettype($this->ajaxParameters);
+        // echo "<br>\n\n<br>";
+        // echo "with encode"; 
+        // print_r(json_encode($this->ajaxParameters));
+
+        print_r('empty($this->ajaxParameters) ===> ' . empty($this->ajaxParameters));
+        print_r(' print_r(($this->ajaxParameters) ===> ' . $this->ajaxParameters);
+
+
+        // echo empty($this->ajaxParameters);
+
+        if( empty( $this->urlParameters) && empty($this->ajaxParameters) ){
+            echo json_encode(
+                array(
+                    "request type" => $_SERVER['REQUEST_METHOD'], 
+                    "status" => "failure", 
+                    "message" => "You have not passed any parameter",
+                    'code' => '001'
+                )
+            );
+            exit();
+        }
+    }
+    // PARENT METHODS
 
     private function logUser() {
         // IF THE USER DOESN'T PASS ALL EXPECTED PARAMETERS
@@ -69,17 +141,16 @@ class Login extends Api {
     }
 
     public function response() {
-        $this->emptyParams();
-        // switch($this->requestMethod) {
-        //     case 'GET':
-        //         $this->logUser();
-        //         break;
-        //     case 'POST':
-        //         echo "POST REQUEST ARE BEIGN DEVELOPED...FOR REAL!";
-        //         break;
-        //     default:
-        //         break;
-        // }
+        $this->getParameters();             // FETCH ALL POSSIBLE GIVEN PARAMETERS
+        $this->checkEmptyParameters();      // IF NONE OF THEM WERE PASSED, CLOSE THE SCRIPT AND RESPONDE TO THE USER
+        // $this->checkRequiredParemetes();    // IF NONE OF THEM WERE PASSED, CLOSE THE SCRIPT AND RESPONDE TO THE USER
+        
+        
+
+
+        // $this->emptyParams();   // CHECKS FOR EMPTY PARAMETERS
+        // $this->validParams();   // CHECKS FOR VALID PARAMS
+        // $this->signIn();        // LOGS THE USER INTO THE APP 
     }
 
 }
